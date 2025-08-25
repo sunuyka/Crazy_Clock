@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hızlandırılmış Zaman - İsviçre Minimal</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .clock-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .time-info {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .speed-indicator {
+            font-size: 14px;
+            font-weight: 300;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .digital-time {
+            font-size: 28px;
+            font-weight: 200;
+            letter-spacing: 2px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .date-display {
+            font-size: 16px;
+            font-weight: 300;
+            color: #7f8c8d;
+        }
+
+        .clock {
+            width: 280px;
+            height: 280px;
+            border: 2px solid #2c3e50;
+            border-radius: 50%;
+            background: #ffffff;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(44, 62, 80, 0.1);
+        }
+
+        .hour-markers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hour-marker {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: #2c3e50;
+            left: 50%;
+            top: 10px;
+            transform-origin: 1px 130px;
+        }
+
+        .minute-marker {
+            position: absolute;
+            width: 1px;
+            height: 12px;
+            background: #bdc3c7;
+            left: 50%;
+            top: 14px;
+            transform-origin: 0.5px 126px;
+        }
+
+        .center-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .hour-hand {
+            position: absolute;
+            width: 4px;
+            height: 70px;
+            background: #2c3e50;
+            left: 50%;
+            bottom: 50%;
+            transform-origin: 2px 70px;
+            border-radius: 2px;
+            animation: fastHourRotation 120s linear infinite;
+            z-index: 3;
+        }
+
+        @keyframes fastHourRotation {
+            from { transform: translateX(-50%) rotate(0deg); }
+            to { transform: translateX(-50%) rotate(259200deg); } /* Süper hızlı: 1 saniyede 720 tur */
+        }
+
+        .minute-hand {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: #2c3e50;
+            left: 50%;
+            bottom: 50%;
+            transform-origin: 1px 100px;
+            border-radius: 1px;
+            animation: fastMinuteRotation 10s linear infinite;
+            z-index: 2;
+        }
+
+        @keyframes fastMinuteRotation {
+            from { transform: translateX(-50%) rotate(0deg); }
+            to { transform: translateX(-50%) rotate(1296000deg); } /* Çok hızlı: 1 saniyede 3600 tur */
+        }
+
+        .second-hand {
+            position: absolute;
+            width: 1px;
+            height: 110px;
+            background: #e74c3c;
+            left: 50%;
+            bottom: 50%;
+            transform-origin: 0.5px 110px;
+            animation: fastSecondRotation 1s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes fastSecondRotation {
+            from { transform: translateX(-50%) rotate(0deg); }
+            to { transform: translateX(-50%) rotate(7776000deg); } /* Ultra hızlı: 1 saniyede 21600 tur */
+        }
+
+        .numbers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .number {
+            position: absolute;
+            font-size: 18px;
+            font-weight: 300;
+            color: #2c3e50;
+            transform: translate(-50%, -50%);
+        }
+
+        .day-night-indicator {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 30px;
+            border-radius: 15px;
+            background: linear-gradient(90deg, #f39c12 0%, #f39c12 50%, #2c3e50 50%, #2c3e50 100%);
+            animation: dayNightCycle 2s linear infinite;
+            border: 1px solid #bdc3c7;
+        }
+
+        @keyframes dayNightCycle {
+            0%, 100% { background: linear-gradient(90deg, #f39c12 0%, #f39c12 50%, #2c3e50 50%, #2c3e50 100%); }
+            25% { background: linear-gradient(90deg, #f39c12 0%, #f39c12 100%); } /* Gündüz */
+            50% { background: linear-gradient(90deg, #f39c12 0%, #f39c12 50%, #2c3e50 50%, #2c3e50 100%); }
+            75% { background: linear-gradient(90deg, #2c3e50 0%, #2c3e50 100%); } /* Gece */
+        }
+
+        .speed-lines {
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.1;
+            animation: speedLinesRotate 2s linear infinite;
+        }
+
+        @keyframes speedLinesRotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .speed-line {
+            position: absolute;
+            width: 2px;
+            height: 40px;
+            background: #2c3e50;
+            border-radius: 1px;
+            left: 50%;
+            top: 0;
+            transform-origin: 1px 160px;
+        }
+
+        .calendar-pages {
+            position: absolute;
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #7f8c8d;
+            text-align: center;
+            animation: pageFlip 1s ease-in-out infinite;
+        }
+
+        @keyframes pageFlip {
+            0%, 85% { opacity: 1; transform: translateX(-50%) rotateX(0deg); }
+            90% { opacity: 0; transform: translateX(-50%) rotateX(90deg); }
+            95%, 100% { opacity: 1; transform: translateX(-50%) rotateX(0deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div class="time-info">
+            <div class="speed-indicator">Ultra Hızlandırılmış Zaman - 1 saniye = 1 gün</div>
+            <div class="digital-time" id="digitalTime">00:00:00</div>
+            <div class="date-display" id="dateDisplay">1 Ocak 2025</div>
+        </div>
+        
+        <div class="clock">
+            <div class="day-night-indicator"></div>
+            
+            <div class="speed-lines">
+                <div class="speed-line" style="transform: translateX(-50%) rotate(0deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(15deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(30deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(45deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(60deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(75deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(90deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(105deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(120deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(135deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(150deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(165deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(180deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(195deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(210deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(225deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(240deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(255deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(270deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(285deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(300deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(315deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(330deg);"></div>
+                <div class="speed-line" style="transform: translateX(-50%) rotate(345deg);"></div>
+            </div>
+
+            <div class="hour-markers">
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(0deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(30deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(60deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(90deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(120deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(150deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(180deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(210deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(240deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(270deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(300deg);"></div>
+                <div class="hour-marker" style="transform: translateX(-50%) rotate(330deg);"></div>
+
+                <div class="minute-marker" style="transform: translateX(-50%) rotate(6deg);"></div>
+                <div class="minute-marker" style="transform: translateX(-50%) rotate(12deg);"></div>
+                <div class="minute-marker" style="transform: translateX(-50%) rotate(18deg);"></div>
+                <div class="minute-marker" style="transform: translateX(-50%) rotate(24deg);"></div>
+                <div class="minute-marker" style="transform: translateX(-50%) rotate(36deg);"></div>
+                <div class="minute-marker" style="transform: translateX(-50%) rotate(42deg);"></div>
+                <div class="minute-marker" style="transform: translateX(-50%) rotate(48deg);"></div>
+                <div class="minute-marker" style="transform: translateX(-50%) rotate(54deg);"></div>
+            </div>
+
+            <div class="numbers">
+                <div class="number" style="top: 25px; left: 50%;">12</div>
+                <div class="number" style="top: 50%; right: 25px;">3</div>
+                <div class="number" style="bottom: 25px; left: 50%;">6</div>
+                <div class="number" style="top: 50%; left: 25px;">9</div>
+            </div>
+
+            <div class="hour-hand"></div>
+            <div class="minute-hand"></div>
+            <div class="second-hand"></div>
+            <div class="center-dot"></div>
+        </div>
+
+        <div class="calendar-pages" id="calendarPages">
+            Günler hızla geçiyor...
+        </div>
+    </div>
+
+    <script>
+        let acceleratedTime = new Date();
+        let lastRealTime = Date.now();
+        const timeMultiplier = 86400; // 1 saniye = 1 gün
+        
+        function updateAcceleratedTime() {
+            const currentRealTime = Date.now();
+            const realTimeDiff = currentRealTime - lastRealTime;
+            
+            // Hızlandırılmış zamanı güncelle
+            acceleratedTime = new Date(acceleratedTime.getTime() + (realTimeDiff * timeMultiplier));
+            lastRealTime = currentRealTime;
+            
+            // Dijital saati güncelle
+            const hours = String(acceleratedTime.getHours()).padStart(2, '0');
+            const minutes = String(acceleratedTime.getMinutes()).padStart(2, '0');
+            const seconds = String(acceleratedTime.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('digitalTime').textContent = `${hours}:${minutes}:${seconds}`;
+            
+            // Tarihi güncelle
+            const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
+                          'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+            const day = acceleratedTime.getDate();
+            const month = months[acceleratedTime.getMonth()];
+            const year = acceleratedTime.getFullYear();
+            
+            document.getElementById('dateDisplay').textContent = `${day} ${month} ${year}`;
+            
+            // Takvim sayfası efekti - ayları ve yılları göster
+            const dayOfYear = Math.floor((acceleratedTime - new Date(acceleratedTime.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            const totalDays = Math.floor((acceleratedTime - new Date(2025, 0, 1)) / (1000 * 60 * 60 * 24));
+            
+            const calendarMessages = [
+                `${day} ${month} ${year} - Günler uçup gidiyor!`,
+                `${month} ${year} - Aylar hızla değişiyor!`,
+                `${year} yılı - Zaman durmuyor!`,
+                `${totalDays}. gün geçti - Hayat akıyor!`,
+                `${month} ayındayız - Mevsimler değişiyor!`
+            ];
+            
+            const messageIndex = Math.floor(Date.now() / 1000) % calendarMessages.length;
+            document.getElementById('calendarPages').textContent = calendarMessages[messageIndex];
+        }
+        
+        // Her 50ms'de güncelle (daha da smooth)
+        setInterval(updateAcceleratedTime, 50);
+        updateAcceleratedTime(); // İlk çalıştırma
+        
+        // Gündüz/gece döngüsü için arka plan rengi değişimi - çok hızlı
+        setInterval(() => {
+            const hour = acceleratedTime.getHours();
+            const body = document.body;
+            const clockContainer = document.querySelector('.clock-container');
+            
+            if (hour >= 6 && hour < 18) {
+                // Gündüz - parlak
+                body.style.background = 'linear-gradient(45deg, #f8f9fa, #ffffff)';
+                clockContainer.style.filter = 'brightness(1.1)';
+            } else {
+                // Gece - karanlık
+                body.style.background = 'linear-gradient(45deg, #2c3e50, #34495e)';
+                clockContainer.style.filter = 'brightness(0.9)';
+            }
+        }, 100);
+    </script>
+</body>
+</html>
